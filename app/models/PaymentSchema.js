@@ -6,10 +6,10 @@ const PaymentSchema = new Schema({
     to_user: { type: String, required: true },
     message: { type: String, required: true },
     amount: { type: String, required: true },
-    payment_id: { type: String, required: true },
+    order_id: { type: String, required: true },
+    done: { type: Boolean, default: false },
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now },
-    done: { type: Boolean, default: false },
 });
 
 export default mongoose.models.Payment || model("Payment", PaymentSchema);

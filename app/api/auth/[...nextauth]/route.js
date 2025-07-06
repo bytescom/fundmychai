@@ -1,38 +1,15 @@
-import { mongoose } from "mongoose"
-import NextAuth from "next-auth"
-import GithubProvider from "next-auth/providers/github"
-import User from "@/app/models/userSchema"
-import Payment from "@/app/models/PaymentSchema"
-// import AppleProvider from 'next-auth/providers/apple'
-// import FacebookProvider from 'next-auth/providers/facebook'
-// import GoogleProvider from 'next-auth/providers/google'
-// import EmailProvider from 'next-auth/providers/email'
+import mongoose from "mongoose";
+import NextAuth from "next-auth";
+import GithubProvider from "next-auth/providers/github";
+import User from "@/app/models/userSchema";
+import connectDB from "@/app/db/connectDb";
 
-
-export const authOptions = NextAuth({
-  // Configure one or more authentication providers
+export const authOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET
     }),
-    // AppleProvider({
-    //   clientId: process.env.APPLE_ID,
-    //   clientSecret: process.env.APPLE_SECRET
-    // }),
-    // FacebookProvider({
-    //   clientId: process.env.FACEBOOK_ID,
-    //   clientSecret: process.env.FACEBOOK_SECRET
-    // }),
-    // GoogleProvider({
-    //   clientId: process.env.GOOGLE_ID,
-    //   clientSecret: process.env.GOOGLE_SECRET
-    // }),
-    // // Passwordless / email sign in
-    // EmailProvider({
-    //   server: process.env.MAIL_SERVER,
-    //   from: 'NextAuth.js <no-reply@example.com>'
-    // }),
   ],
 
   pages: {
@@ -41,37 +18,69 @@ export const authOptions = NextAuth({
   },
 
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, account }) {
+      console.log("➡️ signIn callback triggered", {
+        email: user.email,
+        provider: account.provider,
+      });
+
       if (account.provider === "github") {
         try {
-          // Connect to MongoDB (better to have connection established elsewhere)
-          await mongoose.connect("mongodb://localhost:27017/ekchupchai");
+          console.log("🔌 Connecting to MongoDB...");
+          await connectDB();
+          console.log("✅ MongoDB connected");
 
-          // Check if user exists
-          const currUser = await User.findOne({ email: email });
+          const currUser = await User.findOne({ email: user.email });
+          console.log("🔍 User lookup result:", currUser ? "Found" : "Not found");
 
           if (!currUser) {
-            // Create new user - using profile.name or user.name instead of undefined 'name'
-            const newUser = await User.create({
-              name: profile.name || user.name,  // Fixed: using proper name source
-              email: email,
+            const fallbackName = user.name || " ";
+            const username = user.email.split("@")[0].toLowerCase();
+            const newUser = new User({
+              name: fallbackName,
+              email: user.email,
+              username: username,
             });
 
-            user.name = newUser.email;
-          } else {
-            user.name = currUser.email;
+            await newUser.save();
+            console.log("✅ New user saved:", newUser);
           }
 
-          return true;
         } catch (error) {
-          console.error("SignIn error:", error);
+          console.error("❌ signIn error:", error.message);
           return false;
         }
       }
-      return false; // For non-github providers
+
+      return true;
+    },
+
+    async session({ session }) {
+      console.log("➡️ session callback triggered for", session.user.email);
+
+      try {
+        await connectDB();
+        const dbUser = await User.findOne({ email: session.user.email });
+
+        if (dbUser) {
+          session.user.username = dbUser.username;
+          // You can optionally attach `dbUser._id`, `profile_img`, etc. here
+          console.log("✅ Session enriched with DB user data");
+        } else {
+          console.log("⚠️ No user found in DB for session");
+        }
+
+      } catch (error) {
+        console.error("❌ session error:", error.message);
+      }
+
+      return session;
     }
   }
 
-})
+};
 
-export { authOptions as GET, authOptions as POST }
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
+
+// export { authOptions as GET, authOptions as POST }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { signIn } from 'next-auth/react';
 import { FaGithub } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
@@ -9,11 +9,15 @@ import { useSession } from "next-auth/react"
 
 const login = () => {
     const { data: session } = useSession();
-    if(session ){
-        const route = useRouter()
-        route.push("/dashboard")
-    }
+    const router = useRouter();
+
+    useEffect(() => {
+        if (session) {
+            router.push('/dashboard')
+        }
+    }, [session])
     
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -21,7 +25,7 @@ const login = () => {
 
                 {/* GitHub Login Button */}
                 <button
-                    onClick={()=> signIn("github")}
+                    onClick={() => signIn("github")}
                     className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white py-2 px-4 rounded-md hover:bg-gray-700 cursor-pointer transition duration-200 mb-4"
                 >
                     <FaGithub />
