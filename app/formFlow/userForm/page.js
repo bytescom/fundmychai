@@ -1,7 +1,7 @@
 import React from 'react'
 import { FaUser, FaEnvelope, FaKey, FaUpload } from 'react-icons/fa';
 
-const ContactForm = () => {
+const UserForm = () => {
   return (
     <div className="w-full max-w-2xl mx-auto py-10">
           <div className="bg-black rounded-2xl shadow-xl overflow-hidden border border-gray-800">
@@ -147,4 +147,4 @@ const ContactForm = () => {
   )
 }
 
-export default ContactForm
+export default UserForm
