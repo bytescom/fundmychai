@@ -9,7 +9,7 @@ export default function Home() {
         <div className="flex justify-center items-center mb-4">
           <div className="flex text-yellow-400">
             {[...Array(5)].map((_, i) => (
-              <FaStar />
+              <FaStar/>
             ))}
           </div>
           <span className="ml-2 text-gray-600">Trusted by 500,000+ creators</span>

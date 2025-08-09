@@ -2,14 +2,14 @@
 
 import Razorpay from "razorpay"
 import Payment from "@/app/models/PaymentSchema"
-import User from "@/app/models/userSchema"
 import connectDB from "@/app/db/connectDb"
 
-export const initiate = async (amount, to_user, PaymentForm) => {
+export const initiate = async (amount, to_User, name, message) => {
     await connectDB();
+
     var instance = new Razorpay({
-        key_id: process.env.RASORPAY_KEY_ID, 
-        key_secret:RASORPAY_KEY_SECERT,
+        key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
+        key_secret:process.env.RAZORPAY_KEY_SECERT,
     })
 
 
@@ -23,13 +23,12 @@ export const initiate = async (amount, to_user, PaymentForm) => {
 
     // create a Payment object which shows a pending payment in the database
     await Payment.create({
-        order_id: x.id, 
+        order_Id: x.id, 
         amount: amount,
-        name: PaymentForm.name,
-        to_user: to_user,
-        message: PaymentForm.message,
+        name: name,
+        to_User: to_User,
+        message: message,
     })
 
     return x;
-
 };
