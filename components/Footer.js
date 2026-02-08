@@ -1,27 +1,29 @@
-import React from 'react'
+import Link from "next/link";
+import { FaCoffee } from "react-icons/fa";
+import Image from "next/image";
 
-const Footer = () => {
+const link = ["Terms", "Privacy", "Status", "Contact", "About"]
+
+export default function Footer() {
     return (
-        <footer className="bg-gray-900 text-white py-4 mt-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row justify-between items-center">
-                    <div className="mb-4 md:mb-0">
-                        <p className="text-sm text-white">© 2025 All rights reserved</p>
-                    </div>
-
-                    <div className="flex space-x-6 text-sm">
-                        <a href="#" className="transition-colors">
-                            Terms
-                        </a>
-                        <a href="#" className="transition-colors">
-                            Privacy
-                        </a>
-                        <a href="#" className="transition-colors">
-                            Contact
-                        </a>
-                    </div>
+        <footer className="h-13 flex items-center border-y border-[#f4ebe6] bg-white px-12 py-8">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-0 w-full justify-between">
+                <div className="flex items-center gap-1">
+                    <Image src='/favicon.png' alt="Fundmychai" width={20} height={20}/>
+                    <p className="text-xs sm:text-sm text-[#9e6747] font-medium">© 2025 FundMyChai.</p>
                 </div>
+                <nav className="flex flex-wrap gap-4 sm:gap-6 justify-center">
+                    {link.map((link, index) => (
+                        <Link
+                            key={index}
+                            href="#"
+                            className="text-xs sm:text-sm hover:underline underline-offset-4 text-[#9e6747] hover:text-[#da5407] transition-colors duration-200 focus:outline-none focus:underline font-medium"
+                        >
+                            {link}
+                        </Link>
+                    ))}
+                </nav>
+            </div>
         </footer>
     )
 }
-
-export default Footer

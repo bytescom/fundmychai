@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import React, { useEffect } from 'react'
 import { signIn } from 'next-auth/react';
-import { FaGithub } from "react-icons/fa";
+import { FaGithub, FaGoogle } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react"
 
-const login = () => {
+const Login = () => {
     const { data: session } = useSession();
     const router = useRouter();
 
@@ -15,21 +15,30 @@ const login = () => {
         if (session) {
             router.push('/dashboard')
         }
-    }, [session])
+    }, [session, router])
     
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center p-4">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Login</h2>
+                <h2 className="text-2xl font-bold text-[#c94e07] mb-6 text-center">Login</h2>
 
-                {/* GitHub Login Button */}
+                {/* GitHub Login button */}
                 <button
                     onClick={() => signIn("github")}
-                    className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white py-2 px-4 rounded-md hover:bg-gray-700 cursor-pointer transition duration-200 mb-4"
+                    className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 cursor-pointer transition duration-200 mb-3"
                 >
                     <FaGithub />
                     Login with GitHub
+                </button>
+
+                {/* Google Login button */}
+                <button
+                    onClick={() => signIn("google")}
+                    className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 cursor-pointer transition duration-200 mb-4"
+                >
+                    <FaGoogle className="text-red-500" />
+                    Login with Google
                 </button>
 
                 <div className="relative mb-4">
@@ -47,7 +56,7 @@ const login = () => {
                         <input
                             type="email"
                             id="email"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:text-indigo-600 placeholder-gray-400"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
                             placeholder="your@email.com"
                             required
                         />
@@ -59,15 +68,16 @@ const login = () => {
                         <input
                             type="password"
                             id="password"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:text-indigo-600 placeholder-gray-400"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
                             required
-                            minlength="8"
+                            placeholder="******"
+                            minLength={6}
                         />
                         <p className="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
                     </div>
 
                     <div className="flex items-center justify-end">
-                        <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">
+                        <a href="#" className="text-sm text-orange-600 hover:text-orange-500">
                             Forgot password?
                         </a>
                     </div>
@@ -75,15 +85,15 @@ const login = () => {
 
                     <button
                         type="submit"
-                        className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 cursor-pointer transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className="w-full bg-[#da5407] text-white py-2 px-4 rounded-md hover:bg-orange-700 cursor-pointer transition duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                     >
                         Login
                     </button>
 
 
                     <p className="text-sm text-gray-600 text-center mt-4">
-                        Don't have an account?
-                        <Link className='hover:underline text-indigo-600' href="/auth/signup"> Sign up</Link>
+                        Don&apos;t have an account?
+                        <Link className='hover:underline text-orange-600' href="/auth/signup"> Sign up</Link>
                     </p>
                 </form>
             </div>
@@ -91,4 +101,4 @@ const login = () => {
     )
 }
 
-export default login
+export default Login

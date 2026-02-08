@@ -1,11 +1,14 @@
 import mongoose from "mongoose";
+const MONGODB_URL = process.env.MONGODB_URL;
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect('mongodb://localhost:27017/ekchupchai', {
-      useNewUrlParser: true, 
-      useUnifiedTopology: true, 
-    });
+    // Avoid multiple connections
+    if (mongoose.connection.readyState >= 1) {
+      return;
+    }
+    
+    const conn = await mongoose.connect(MONGODB_URL);
     console.log(`MongoDB Connected: ${conn.connection.host}`); 
     
   } catch (error) {

@@ -9,12 +9,12 @@ export const initiate = async (amount, to_User, name, message) => {
 
     var instance = new Razorpay({
         key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
-        key_secret:process.env.RAZORPAY_KEY_SECERT,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
     })
 
 
     let options = {
-        amount: Number.parseInt(amount),
+        amount: Number.parseInt(amount) * 100, // Convert to paise (1 rupee = 100 paise)
         currency: "INR",
         receipt: "receipt#1",
     }

@@ -19,6 +19,7 @@ export const authOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
+
       console.log("➡️ signIn callback triggered", {
         email: user.email,
         provider: account.provider,
@@ -54,6 +55,7 @@ export const authOptions = {
 
       return true;
     },
+    
 
     async session({ session }) {
       console.log("➡️ session callback triggered for", session.user.email);

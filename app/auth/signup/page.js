@@ -2,22 +2,31 @@
 import Link from 'next/link'
 import React from 'react'
 import { signIn } from 'next-auth/react';
-import { FaGithub } from "react-icons/fa";
+import { FaGithub, FaGoogle } from "react-icons/fa";
 
-const signup = () => {
+const Signup = () => {
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center p-4">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Sign up</h2>
+                <h2 className="text-2xl font-bold text-[#c94e07] mb-6 text-center">Sign-Up</h2>
 
-                {/* GitHub Sign Up Button */}
+                {/* GitHub Sign Up button */}
                 <button
                     onClick={() => signIn('github')}
-                    className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white py-2 px-4 rounded-md hover:bg-gray-700 cursor-pointer transition duration-200 mb-4"
+                    className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 cursor-pointer transition duration-200 mb-3"
                 >
                     <FaGithub />
                     Sign-up with GitHub
+                </button>
+
+                {/* Google Sign Up button */}
+                <button
+                    onClick={() => signIn('google')}
+                    className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 cursor-pointer transition duration-200 mb-4"
+                >
+                    <FaGoogle className="text-red-500" />
+                    Sign-up with Google
                 </button>
 
                 <div className="relative mb-4">
@@ -34,9 +43,9 @@ const signup = () => {
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                         <input
-                            type="name"
+                            type="text"
                             id="name"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:text-indigo-600 placeholder-gray-400"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
                             placeholder="Your Name"
                             required
                         />
@@ -47,7 +56,7 @@ const signup = () => {
                         <input
                             type="email"
                             id="email"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:text-indigo-600 placeholder-gray-400"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
                             placeholder="yourname@email.com"
                             required
                         />
@@ -59,15 +68,16 @@ const signup = () => {
                         <input
                             type="password"
                             id="password"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:text-indigo-600 placeholder-gray-400"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
                             required
-                            minlength="6"
+                            placeholder="******"
+                            minLength={6}
                         />
                         <p className="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
                     </div>
 
                     <div className="flex items-center justify-end">
-                        <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">
+                        <a href="#" className="text-sm text-orange-600 hover:text-orange-500">
                             Forgot password?
                         </a>
                     </div>
@@ -75,15 +85,15 @@ const signup = () => {
 
                     <button
                         type="submit"
-                        className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 cursor-pointer transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className="w-full bg-[#da5407] text-white py-2 px-4 rounded-md hover:bg-orange-700 cursor-pointer transition duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                     >
                         Sign up
                     </button>
 
 
                     <p className="text-sm text-gray-600 text-center mt-4">
-                        Don't have an account?
-                        <Link className='hover:underline text-indigo-600' href="/auth/login">Login</Link>
+                        Already have an account?
+                        <Link className='hover:underline text-orange-600' href="/auth/login"> Login</Link>
                     </p>
                 </form>
             </div>
@@ -91,4 +101,4 @@ const signup = () => {
     )
 }
 
-export default signup
+export default Signup

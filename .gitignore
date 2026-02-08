@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#components
+components/help
+components/help/pageHelp.js
+components/help/payerFromHelp.js
+components/help/payerFormH2.js
