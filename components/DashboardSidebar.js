@@ -4,13 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { MdDashboard, MdSettings, MdLogout } from "react-icons/md";
 import { FaHeart, FaCoffee, FaBox, FaFileAlt, FaUser, FaBars } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 
 export default function DashboardSidebar() {
     const pathname = usePathname();
+    const { data: session } = useSession();
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const menuItems = [
@@ -51,11 +52,17 @@ export default function DashboardSidebar() {
                 {/* User Mini Profile */}
                 <div className="flex items-center gap-3 p-3 bg-[#da5407]/10 border border-[#da5407] rounded-xl mb-2">
                     <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-                        <Image src="https://github.com/shadcn.png" alt="User" width={32} height={32} className="w-full h-full object-cover" />
+                        {session?.user?.profile_img ? (
+                            <Image src={session.user.profile_img} alt="User" width={32} height={32} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">
+                                {session?.user?.name?.charAt(0)?.toUpperCase() || "?"}
+                            </div>
+                        )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">Aditya Kumar</p>
-                        <p className="text-xs text-gray-500 truncate">/aditya</p>
+                        <p className="text-sm font-bold text-gray-900 truncate">{session?.user?.name || "User"}</p>
+                        <p className="text-xs text-gray-500 truncate">/{session?.user?.username || ""}</p>
                     </div>
                 </div>
             </div>
@@ -102,7 +109,7 @@ export default function DashboardSidebar() {
                     <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600">
                         <FaCoffee size={18} />
                     </div>
-                    <span className="font-bold text-lg text-gray-900" style={{ fontFamily: 'cursive' }}>FundMyChai</span>
+                    <span className="font-bold text-lg text-gray-900">FundMyChai</span>
                 </div>
                 <button
                     onClick={() => setMobileOpen(!mobileOpen)}
@@ -127,7 +134,7 @@ export default function DashboardSidebar() {
             </div>
 
             {/* Desktop Sidebar */}
-            <div className="w-64 bg-white h-screen border-r border-gray-100 flex-col fixed left-0 top-0 hidden md:flex z-50 shadow-[2px_0_5px_rgba(0,0,0,0.02)] font-sans">
+            <div className="w-64 bg-white h-screen border-r border-gray-100 flex-col fixed left-0 top-0 hidden md:flex z-50 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                 <SidebarContent />
             </div>
         </>

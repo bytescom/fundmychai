@@ -6,29 +6,23 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FaShareAlt, FaCode, FaBookOpen, FaTwitter, FaFacebook, FaCopy, FaArrowRight, FaExternalLinkAlt } from 'react-icons/fa';
 import { IoTrendingUp, IoTrendingDown } from 'react-icons/io5';
+import { fetchEarningsStats, fetchPageViewStats, fetchRecentSupporters } from '@/actions/useractions';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [stats, setStats] = useState({
-    earnings: {
-      current: 44800,
-      change: 12.5,
-      timeframe: '30 days'
-    },
-    pageViews: {
-      current: 14300,
-      change: -3.2,
-      timeframe: '30 days'
-    }
-  });
 
-  const recentSupporters = [
-    { name: "Rahul S.", amount: 250, time: "Oct 24, 2024, 2:15 PM", initial: "R", color: "bg-green-50 text-green-600", status: "Success", statusColor: "bg-green-500" },
-    { name: "Priya M.", amount: 100, time: "Oct 23, 2024, 10:28 AM", initial: "P", color: "bg-orange-50 text-orange-600", status: "Pending", statusColor: "bg-amber-400" },
-    { name: "Vikram", amount: 500, time: "Oct 22, 2024, 5:47 PM", initial: "V", color: "bg-blue-50 text-blue-600", status: "Success", statusColor: "bg-green-500" },
-    { name: "Anonymous", amount: 50, time: "Oct 21, 2024, 1:20 PM", initial: "A", color: "bg-gray-50 text-gray-600", status: "Success", statusColor: "bg-green-500" },
-  ];
+  const [earningsLoading, setEarningsLoading] = useState(true);
+  const [viewsLoading, setViewsLoading] = useState(true);
+  const [earningsTimeframe, setEarningsTimeframe] = useState(30);
+  const [viewsTimeframe, setViewsTimeframe] = useState(30);
+
+  const [earnings, setEarnings] = useState({ allTime: 0, current: 0, change: 0 });
+  const [pageViews, setPageViews] = useState({ current: 0, change: 0 });
+  const [recentSupporters, setRecentSupporters] = useState([]);
+
+  const timeframeLabels = { 1: 'Today', 7: '7 days', 30: '30 days' };
+  const timeframeOptions = [1, 7, 30];
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -36,23 +30,36 @@ export default function Dashboard() {
     }
   }, [status, router]);
 
-  // Simulate dynamic updates
+  // Fetch earnings (independent)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        earnings: {
-          ...prev.earnings,
-          current: prev.earnings.current + Math.floor(Math.random() * 100)
-        },
-        pageViews: {
-          ...prev.pageViews,
-          current: prev.pageViews.current + Math.floor(Math.random() * 50)
-        }
-      }));
-    }, 5000);
+    const username = session?.user?.username;
+    if (!username) return;
+    setEarningsLoading(true);
+    fetchEarningsStats(username, earningsTimeframe)
+      .then(setEarnings)
+      .catch(() => {})
+      .finally(() => setEarningsLoading(false));
+  }, [session?.user?.username, earningsTimeframe]);
 
-    return () => clearInterval(interval);
-  }, []);
+  // Fetch page views (independent)
+  useEffect(() => {
+    const username = session?.user?.username;
+    if (!username) return;
+    setViewsLoading(true);
+    fetchPageViewStats(username, viewsTimeframe)
+      .then(setPageViews)
+      .catch(() => {})
+      .finally(() => setViewsLoading(false));
+  }, [session?.user?.username, viewsTimeframe]);
+
+  // Fetch recent supporters (once)
+  useEffect(() => {
+    const username = session?.user?.username;
+    if (!username) return;
+    fetchRecentSupporters(username)
+      .then(setRecentSupporters)
+      .catch(() => {});
+  }, [session?.user?.username]);
 
   const formatNumber = (num) => {
     if (num >= 1000) {
@@ -61,21 +68,37 @@ export default function Dashboard() {
     return num.toString();
   };
 
+  const formatTime = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true,
+    });
+  };
+
+  const avatarColors = [
+    "bg-green-50 text-green-600",
+    "bg-orange-50 text-orange-600",
+    "bg-blue-50 text-blue-600",
+    "bg-purple-50 text-purple-600",
+    "bg-rose-50 text-rose-600",
+  ];
+
   if (status === 'loading') {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-12 font-sans py-9">
+    <div className="max-w-6xl mx-auto flex flex-col gap-12 py-9">
 
       <div className='flex justify-between items-center px-2'>
         {/* Title Section */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Overview</h1>
-          <p className="text-gray-500 mt-1 text-sm sm:text-base">Welcome back, Aditya! Here&apos;s what&apos;s happening.</p>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">Welcome back, {session?.user?.name || "there"}! Here&apos;s what&apos;s happening.</p>
         </div>
 
-        <Link href="/aditya" target="_blank" className="text-[#da5407] hover:text-[#b8450a] font-medium text-sm flex items-center gap-1.5 transition-colors">
+        <Link href={`/${session?.user?.username || ""}`} target="_blank" className="text-[#da5407] hover:text-[#b8450a] font-medium text-sm flex items-center gap-1.5 transition-colors">
           View Page <FaExternalLinkAlt size={12} />
         </Link>
       </div>
@@ -87,20 +110,33 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0 mb-4">
             <div>
               <h3 className="text-gray-900 font-bold text-lg">Earnings</h3>
-              <div className={`flex items-center gap-1 mt-1 text-sm font-semibold ${stats.earnings.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {stats.earnings.change >= 0 ? <IoTrendingUp size={16} /> : <IoTrendingDown size={16} />}
-                {Math.abs(stats.earnings.change)}% vs last period
+              <div className={`flex items-center gap-1 mt-1 text-sm font-semibold ${earnings.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {earnings.change >= 0 ? <IoTrendingUp size={16} /> : <IoTrendingDown size={16} />}
+                {Math.abs(earnings.change)}% vs prior {timeframeLabels[earningsTimeframe].toLowerCase()}
               </div>
             </div>
             <div className="flex gap-2 text-xs sm:text-sm text-gray-500 font-medium">
-              <span className="cursor-pointer hover:text-gray-900">7 days</span>
-              <span className="text-gray-900 border-b-2 border-[#da5407] pb-1">{stats.earnings.timeframe}</span>
-              <span className="cursor-pointer hover:text-gray-900 hidden sm:inline">All time</span>
+              {timeframeOptions.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setEarningsTimeframe(t)}
+                  className={`cursor-pointer pb-1 transition-colors ${
+                    earningsTimeframe === t
+                      ? 'text-gray-900 border-b-2 border-[#da5407]'
+                      : 'hover:text-gray-900'
+                  }`}
+                >
+                  {timeframeLabels[t]}
+                </button>
+              ))}
             </div>
           </div>
 
           <div className="text-center py-2 sm:py-0">
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">₹{stats.earnings.current.toLocaleString()}</h2>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">
+              {earningsLoading ? "—" : `₹${earnings.current.toLocaleString()}`}
+            </h2>
+            <p className="text-gray-400 text-sm mt-2">All-time: ₹{earnings.allTime.toLocaleString()}</p>
           </div>
 
           {/* Simulated Graph Curve */}
@@ -117,19 +153,32 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0 mb-4">
             <div>
               <h3 className="text-gray-900 font-bold text-lg">Page views</h3>
-              <div className={`flex items-center gap-1 mt-1 text-sm font-semibold ${stats.pageViews.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {stats.pageViews.change >= 0 ? <IoTrendingUp size={16} /> : <IoTrendingDown size={16} />}
-                {Math.abs(stats.pageViews.change)}% vs last period
+              <div className={`flex items-center gap-1 mt-1 text-sm font-semibold ${pageViews.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {pageViews.change >= 0 ? <IoTrendingUp size={16} /> : <IoTrendingDown size={16} />}
+                {Math.abs(pageViews.change)}% vs prior {timeframeLabels[viewsTimeframe].toLowerCase()}
               </div>
             </div>
             <div className="flex gap-2 text-xs sm:text-sm text-gray-500 font-medium">
-              <span className="cursor-pointer hover:text-gray-900">7 days</span>
-              <span className="text-gray-900 border-b-2 border-[#da5407] pb-1">{stats.pageViews.timeframe}</span>
+              {timeframeOptions.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setViewsTimeframe(t)}
+                  className={`cursor-pointer pb-1 transition-colors ${
+                    viewsTimeframe === t
+                      ? 'text-gray-900 border-b-2 border-[#da5407]'
+                      : 'hover:text-gray-900'
+                  }`}
+                >
+                  {timeframeLabels[t]}
+                </button>
+              ))}
             </div>
           </div>
 
           <div className="text-center py-2 sm:py-0">
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">{formatNumber(stats.pageViews.current)}</h2>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">
+              {viewsLoading ? "—" : formatNumber(pageViews.current)}
+            </h2>
           </div>
 
           {/* Simulated Graph Curve */}
@@ -152,37 +201,41 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-2 sm:space-y-3">
-          {recentSupporters.map((supporter, index) => (
-            <div key={index} className="flex items-center justify-between p-3 sm:p-4 bg-white rounded-xl border border-gray-100 hover:border-[#da5407]/20 hover:shadow-sm transition-all cursor-pointer">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-bold ${supporter.color}`}>
-                  {supporter.initial}
-                </div>
-
-                <div className="flex flex-col gap-0.5">
-                  <h4 className="font-bold text-gray-900 text-sm sm:text-base">{supporter.name}</h4>
-                  <p className="text-gray-400 text-xs sm:text-sm font-medium hidden sm:block">{supporter.time}</p>
-                  <p className="text-gray-400 text-xs font-medium sm:hidden">{supporter.time.split(',')[0]}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 sm:gap-6">
-                <div className="text-right">
-                  <div className="font-bold text-gray-900 text-base sm:text-lg mb-0.5 sm:mb-1">
-                    + ₹{supporter.amount}
+          {recentSupporters.length === 0 ? (
+            <p className="text-gray-400 text-center py-8">No supporters yet. Share your page to get started!</p>
+          ) : (
+            recentSupporters.map((supporter, index) => (
+              <div key={supporter._id || index} className="flex items-center justify-between p-3 sm:p-4 bg-white rounded-xl border border-gray-100 hover:border-[#da5407]/20 hover:shadow-sm transition-all cursor-pointer">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-bold ${avatarColors[index % avatarColors.length]}`}>
+                    {(supporter.name || "A").charAt(0).toUpperCase()}
                   </div>
-                  <div className="flex items-center justify-end gap-1.5">
-                    <div className={`w-2 h-2 rounded-full ${supporter.statusColor}`}></div>
-                    <span className="text-gray-400 text-xs sm:text-sm font-medium">{supporter.status}</span>
+
+                  <div className="flex flex-col gap-0.5">
+                    <h4 className="font-bold text-gray-900 text-sm sm:text-base">{supporter.name || "Anonymous"}</h4>
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium hidden sm:block">{formatTime(supporter.created_at)}</p>
+                    <p className="text-gray-400 text-xs font-medium sm:hidden">{new Date(supporter.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</p>
                   </div>
                 </div>
 
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-[#da5407] hover:text-white transition-all hidden sm:flex">
-                  <FaArrowRight size={16} />
+                <div className="flex items-center gap-3 sm:gap-6">
+                  <div className="text-right">
+                    <div className="font-bold text-gray-900 text-base sm:text-lg mb-0.5 sm:mb-1">
+                      + ₹{supporter.amount}
+                    </div>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="text-gray-400 text-xs sm:text-sm font-medium">{supporter.tierType || "Chai"}</span>
+                    </div>
+                  </div>
+
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-[#da5407] hover:text-white transition-all hidden sm:flex">
+                    <FaArrowRight size={16} />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -198,7 +251,7 @@ export default function Dashboard() {
             Get more supporters by sharing your page on social media.
           </p>
           <div className="w-full text-center space-y-2 pt-1 sm:pt-2">
-            <p className="text-[#da5407] font-semibold text-xs sm:text-sm cursor-pointer hover:underline truncate">fundmychai.com/aditya</p>
+            <p className="text-[#da5407] font-semibold text-xs sm:text-sm cursor-pointer hover:underline truncate">fundmychai.com/{session?.user?.username || ""}</p>
             <div className="flex justify-center gap-2 sm:gap-3 mt-3 sm:mt-4">
               <button variant="outline" size="icon" className="rounded-full border-gray-200 text-gray-500 hover:text-[#da5407] hover:border-[#da5407] w-9 h-9 sm:w-10 sm:h-10"><FaCopy size={16} /></button>
               <button variant="outline" size="icon" className="rounded-full border-gray-200 text-gray-500 hover:text-[#1DA1F2] hover:border-[#1DA1F2] w-9 h-9 sm:w-10 sm:h-10"><FaTwitter size={16} /></button>

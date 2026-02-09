@@ -1,18 +1,22 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { FiUpload, FiSave, FiEye, FiCheck } from "react-icons/fi";
 import Image from "next/image";
+import { updateUser, fetchUserByEmail } from '@/actions/useractions';
 
-const INITIAL_DATA = {
-    displayName: "Aditya Kumar",
-    username: "aditya",
-    bio: "Creating tech videos to help you understand the digital world. Coffee fuels my coding sessions! ☕",
-    location: "Bangalore, India",
-    profileImage: "https://github.com/shadcn.png",
-    aboutMe: "Hey there! I'm Aditya, a full-time tech content creator. I make extensive tutorials on web development, system design, and the latest tech trends.\n\nYour support helps me keep the channel ad-free and allows me to invest in better equipment. Thank you for being part of this journey!",
+const EMPTY_DATA = {
+    displayName: "",
+    username: "",
+    bio: "",
+    location: "",
+    profileImage: "/favicon.png",
+    coverImage: "",
+    aboutMe: "",
     twitter: "",
-    instagram: "",
-    youtube: ""
+    github: "",
+    linkedin: "",
+    website: "",
 };
 
 const SectionCard = ({ title, children }) => (
@@ -31,20 +35,92 @@ const FormField = ({ label, hint, children }) => (
 );
 
 export default function PageSettings() {
-    const [formData, setFormData] = useState(INITIAL_DATA);
+    const { data: session } = useSession();
+    const [formData, setFormData] = useState(EMPTY_DATA);
     const [saved, setSaved] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState({ profile: false, cover: false });
+
+    // Fetch user data from DB on mount
+    useEffect(() => {
+        const loadUser = async () => {
+            if (!session?.user?.email) return;
+            try {
+                const user = await fetchUserByEmail(session.user.email);
+                if (user) {
+                    setFormData({
+                        displayName: user.name || "",
+                        username: user.username || "",
+                        bio: user.bio || "",
+                        location: user.location || "",
+                        profileImage: user.profile_img || "/favicon.png",
+                        coverImage: user.cover_img || "",
+                        aboutMe: user.about || "",
+                        twitter: user.socialLinks?.twitter || "",
+                        github: user.socialLinks?.github || "",
+                        linkedin: user.socialLinks?.linkedin || "",
+                        website: user.socialLinks?.website || "",
+                    });
+                }
+            } catch (err) {
+                // silently fail
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadUser();
+    }, [session]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSave = () => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+    const handleImageUpload = async (e, type) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(prev => ({ ...prev, [type]: true }));
+        try {
+            const form = new FormData();
+            form.append("file", file);
+            form.append("type", type);
+
+            const res = await fetch("/api/upload", { method: "POST", body: form });
+            const data = await res.json();
+
+            if (data.success) {
+                const key = type === "profile" ? "profileImage" : "coverImage";
+                setFormData(prev => ({ ...prev, [key]: data.url }));
+            } else {
+                alert(data.error || "Upload failed");
+            }
+        } catch (err) {
+            alert("Failed to upload image");
+        } finally {
+            setUploading(prev => ({ ...prev, [type]: false }));
+        }
     };
 
+    const handleSave = async () => {
+        try {
+            await updateUser(session.user.email, formData);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+        } catch (err) {
+            alert("Failed to save settings. Please try again.");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="max-w-6xl mx-auto flex items-center justify-center py-20">
+                <p className="text-gray-500">Loading settings...</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-6xl mx-auto flex flex-col gap-10 font-sans py-9">
+        <div className="max-w-6xl mx-auto flex flex-col gap-10 py-9">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -70,11 +146,15 @@ export default function PageSettings() {
             <SectionCard title="Cover Image">
                 <div className="space-y-3">
                     <div className="aspect-[3/1] bg-gradient-to-r from-orange-100 to-orange-50 rounded-xl relative overflow-hidden group cursor-pointer">
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        {formData.coverImage && (
+                            <Image src={formData.coverImage} alt="Cover" fill className="object-cover" />
+                        )}
+                        <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                             <span className="flex items-center gap-2 bg-white text-gray-900 px-4 py-2 rounded-lg font-medium">
-                                <FiUpload size={18} /> Change Cover
+                                <FiUpload size={18} /> {uploading.cover ? "Uploading..." : "Change Cover"}
                             </span>
-                        </div>
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "cover")} disabled={uploading.cover} />
+                        </label>
                     </div>
                     <p className="text-sm text-gray-500">Recommended size: 1500x500px</p>
                 </div>
@@ -91,15 +171,17 @@ export default function PageSettings() {
                             height={100}
                             className="rounded-full border-4 border-gray-100 shadow-md"
                         />
-                        <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <FiUpload size={20} className="text-white" />
-                        </div>
+                        <label className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                            <FiUpload size={20} className="text-gray-700" />
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "profile")} disabled={uploading.profile} />
+                        </label>
                     </div>
                     <div>
                         <p className="text-sm text-gray-500 mb-3">JPG, PNG or GIF. Max size 2MB.</p>
-                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 font-medium text-sm transition-colors">
-                            <FiUpload size={16} /> Upload New
-                        </button>
+                        <label className="flex items-center gap-2 px-4 py-2 border text-gray-500 border-gray-400 rounded-xl hover:bg-gray-50 font-medium text-sm transition-colors cursor-pointer">
+                            <FiUpload size={16} /> {uploading.profile ? "Uploading..." : "Upload New"}
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "profile")} disabled={uploading.profile} />
+                        </label>
                     </div>
                 </div>
             </SectionCard>
@@ -127,7 +209,7 @@ export default function PageSettings() {
                                 value={formData.username}
                                 onChange={handleChange}
                                 placeholder="username"
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors} flex-1"
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors flex-1"
                             />
                         </div>
                     </FormField>
@@ -139,7 +221,7 @@ export default function PageSettings() {
                             onChange={handleChange}
                             rows="3"
                             placeholder="Tell people about yourself..."
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors} resize-none"
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors resize-none"
                         />
                     </FormField>
 
@@ -181,21 +263,30 @@ export default function PageSettings() {
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors"
                         />
                     </FormField>
-                    <FormField label="Instagram">
+                    <FormField label="GitHub">
                         <input
-                            name="instagram"
-                            value={formData.instagram}
+                            name="github"
+                            value={formData.github}
                             onChange={handleChange}
-                            placeholder="https://instagram.com/username"
+                            placeholder="https://github.com/username"
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors"
                         />
                     </FormField>
-                    <FormField label="YouTube">
+                    <FormField label="LinkedIn">
                         <input
-                            name="youtube"
-                            value={formData.youtube}
+                            name="linkedin"
+                            value={formData.linkedin}
                             onChange={handleChange}
-                            placeholder="https://youtube.com/@username"
+                            placeholder="https://linkedin.com/in/username"
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors"
+                        />
+                    </FormField>
+                    <FormField label="Website">
+                        <input
+                            name="website"
+                            value={formData.website}
+                            onChange={handleChange}
+                            placeholder="https://yourwebsite.com"
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors"
                         />
                     </FormField>

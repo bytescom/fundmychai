@@ -1,18 +1,22 @@
 import Image from "next/image";
 import { FaCheckCircle, FaCoffee, FaShareAlt, FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
+import { fetchUser } from "@/actions/useractions";
+import Payment from "@/app/models/PaymentSchema";
+import connectDB from "@/app/db/connectDb";
 
-export default function ProfileHeader({ username }) {
-  // Mock data - would normally fetch based on username
+export default async function ProfileHeader({ username }) {
+  const user = await fetchUser(username);
+  await connectDB();
+  const supporterCount = await Payment.countDocuments({ to_User: username, done: true });
+
   const profile = {
-    name: "Aditya Kumar",
-    displayName: "Aditya",
-    bio: "Creating tech videos to help you understand the digital world. Coffee fuels my coding sessions! ☕ building @FundMyChai",
-    supporters: 1240,
-    posts: 15,
-    joinedDate: "Jan 2024",
-    location: "Bangalore, India",
-    coverImage: "bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200", // Fallback or URL
-    profileImage: "https://github.com/shadcn.png"
+    name: user?.name || username,
+    bio: user?.bio || "",
+    supporters: supporterCount,
+    joinedDate: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : "",
+    location: user?.location || "",
+    coverImage: user?.cover_img || "bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200",
+    profileImage: user?.profile_img || "/default-avatar.png",
   };
 
   return (
@@ -49,7 +53,7 @@ export default function ProfileHeader({ username }) {
                 <FaCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
               </h1>
               <p className="text-[#9e6747] font-medium text-sm sm:text-base">
-                @{username || "aditya"}
+                @{username}
               </p>
             </div>
           </div>
@@ -65,7 +69,7 @@ export default function ProfileHeader({ username }) {
 
         {/* Bio Section */}
         <div className="space-y-3 sm:space-y-4">
-          <p className="text-[#1c120d]/80 text-sm sm:text-lg leading-relaxed max-w-2xl text-center sm:text-left">
+          <p className="text-[#1c120d]/80 text-sm sm:text-base leading-relaxed max-w-2xl text-center sm:text-left">
             {profile.bio}
           </p>
 

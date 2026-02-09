@@ -8,24 +8,16 @@ export const POST = async (req) => {
 
   try {
     const body = await req.json();
-    
-    console.log("🔍 Razorpay callback received:", {
-      order_id: body.razorpay_order_id,
-      payment_id: body.razorpay_payment_id,
-      has_signature: !!body.razorpay_signature
-    });
 
     // Find the payment in DB
     const payment = await Payment.findOne({ order_Id: body.razorpay_order_id });
     if (!payment) {
-      console.log("❌ Order not found:", body.razorpay_order_id);
       return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
     }
 
     // Use the environment variable for Razorpay secret
     const secret = process.env.RAZORPAY_KEY_SECRET;
     if (!secret) {
-      console.log("❌ Razorpay secret not configured");
       return NextResponse.json({ success: false, message: "Razorpay secret not configured" }, { status: 500 });
     }
 
@@ -37,8 +29,6 @@ export const POST = async (req) => {
       .digest("hex");
 
     const isValid = generatedSignature === body.razorpay_signature;
-
-    console.log("🔐 Signature verification:", isValid ? "✅ Valid" : "❌ Invalid");
 
     if (isValid) {
       // Update the payment status
@@ -52,20 +42,16 @@ export const POST = async (req) => {
         { new: true }
       );
       
-      console.log("✅ Payment verified and updated:", updatedPayment.order_Id);
-      
       return NextResponse.json({ 
         success: true, 
         message: "Payment verified successfully",
         payment: updatedPayment
       });
     } else {
-      console.log("❌ Payment verification failed - signature mismatch");
       return NextResponse.json({ success: false, message: "Payment verification failed" }, { status: 400 });
     }
 
   } catch (err) {
-    console.error("❌ Razorpay verification error:", err);
-    return NextResponse.json({ success: false, message: "Internal Server Error", error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 };

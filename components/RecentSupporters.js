@@ -1,19 +1,49 @@
 import { FaCheckCircle, FaCoffee, FaCrown, FaHeart, FaQuoteLeft } from "react-icons/fa";
+import Payment from "@/app/models/PaymentSchema";
+import connectDB from "@/app/db/connectDb";
+import { getTierByAmount } from "@/lib/chaiTiers";
 
-export default function RecentSupporters() {
-  const supporters = [
-    { name: "Rahul S.", amount: 250, count: 5, message: "Keep creating amazing content! This helped me a lot.", time: "2h ago", avatarColor: "bg-orange-100 text-orange-600", initial: "R" },
-    { name: "Priya M.", amount: 100, count: 2, message: "Just a small token of appreciation.", time: "5h ago", avatarColor: "bg-sky-100 text-sky-600", initial: "P" },
-    { name: "Vikram", amount: 500, count: 10, message: "Huge fan from Bangalore!", time: "1d ago", avatarColor: "bg-green-100 text-green-600", initial: "V" },
-    { name: "Anonymous", amount: 50, count: 1, message: "", time: "2d ago", avatarColor: "bg-slate-100 text-slate-600", initial: "A" },
-  ];
+const avatarColors = [
+  "bg-orange-100 text-orange-600",
+  "bg-sky-100 text-sky-600",
+  "bg-green-100 text-green-600",
+  "bg-purple-100 text-purple-600",
+  "bg-indigo-100 text-indigo-600",
+  "bg-rose-100 text-rose-600",
+];
+
+export default async function RecentSupporters({ username }) {
+  await connectDB();
+  const payments = await Payment.find({ to_User: username, done: true })
+    .sort({ created_at: -1 })
+    .limit(10)
+    .lean();
+
+  const supporters = payments.map((p, i) => {
+    const timeDiff = Date.now() - new Date(p.created_at).getTime();
+    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    const time = days > 0 ? `${days}d ago` : hours > 0 ? `${hours}h ago` : "Just now";
+    const tier = getTierByAmount(p.amount);
+
+    return {
+      name: p.name || "Anonymous",
+      amount: p.amount,
+      tierType: p.tierType || tier.type,
+      tierEmoji: tier.emoji,
+      message: p.message || "",
+      time,
+      initial: (p.name || "A").charAt(0).toUpperCase(),
+      avatarColor: avatarColors[i % avatarColors.length],
+    };
+  });
 
   return (
     <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#f4ebe6] shadow-sm overflow-hidden">
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#f4ebe6] bg-[#fcf9f8]/50 flex justify-between items-center">
         <h3 className="text-base sm:text-lg font-bold text-[#1c120d] flex items-center gap-2">
-          Supporter Feed
+          Recent Supporters
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
         </h3>
         <FaHeart className="w-4 h-4 sm:w-5 sm:h-5 text-[#da5407]" />
@@ -36,8 +66,8 @@ export default function RecentSupporters() {
                   </div>
                   <div className="text-[10px] sm:text-xs font-semibold text-[#9e6747] flex items-center gap-1 mt-0.5">
                     <span className="bg-orange-50 text-[#da5407] px-1.5 sm:px-2 py-0.5 rounded-full border border-orange-100 flex items-center gap-1">
-                      <FaCoffee className="w-2.5 h-2.5" />
-                      {supporter.count} {supporter.count > 1 ? 'Chais' : 'Chai'}
+                      <span>{supporter.tierEmoji}</span>
+                      {supporter.tierType} — ₹{supporter.amount}
                     </span>
                   </div>
                 </div>

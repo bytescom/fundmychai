@@ -41,7 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 #components
-components/help
-components/help/pageHelp.js
-components/help/payerFromHelp.js
-components/help/payerFormH2.js
+components/help/

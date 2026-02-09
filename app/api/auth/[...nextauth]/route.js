@@ -20,19 +20,11 @@ export const authOptions = {
   callbacks: {
     async signIn({ user, account }) {
 
-      console.log("➡️ signIn callback triggered", {
-        email: user.email,
-        provider: account.provider,
-      });
-
       if (account.provider === "github") {
         try {
-          console.log("🔌 Connecting to MongoDB...");
           await connectDB();
-          console.log("✅ MongoDB connected");
 
           const currUser = await User.findOne({ email: user.email });
-          console.log("🔍 User lookup result:", currUser ? "Found" : "Not found");
 
           if (!currUser) {
             const fallbackName = user.name || " ";
@@ -44,11 +36,9 @@ export const authOptions = {
             });
 
             await newUser.save();
-            console.log("✅ New user saved:", newUser);
           }
 
         } catch (error) {
-          console.error("❌ signIn error:", error.message);
           return false;
         }
       }
@@ -58,22 +48,18 @@ export const authOptions = {
     
 
     async session({ session }) {
-      console.log("➡️ session callback triggered for", session.user.email);
-
       try {
         await connectDB();
         const dbUser = await User.findOne({ email: session.user.email });
 
         if (dbUser) {
           session.user.username = dbUser.username;
-          // You can optionally attach `dbUser._id`, `profile_img`, etc. here
-          console.log("✅ Session enriched with DB user data");
-        } else {
-          console.log("⚠️ No user found in DB for session");
+          session.user.name = dbUser.name;
+          session.user.profile_img = dbUser.profile_img;
         }
 
       } catch (error) {
-        console.error("❌ session error:", error.message);
+        // silently fail
       }
 
       return session;

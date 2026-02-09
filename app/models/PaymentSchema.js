@@ -5,6 +5,7 @@ const PaymentSchema = new Schema({
     to_User: { type: String },
     message: { type: String },
     amount: { type: Number, required: true },
+    tierType: { type: String, default: 'Cutting Chai' },
     order_Id: { type: String, required: true },
     signature: { type: String },
     done: { type: Boolean, default: false },

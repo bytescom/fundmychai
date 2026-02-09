@@ -1,8 +1,7 @@
 "use client";
+
 import React, { useState } from 'react';
 import { FiSave } from "react-icons/fi";
-
-const w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors = "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors";
 
 const FormField = ({ label, children }) => (
     <div>
@@ -49,7 +48,7 @@ export default function Profile() {
                                 value={formData.firstName}
                                 onChange={handleChange}
                                 placeholder="Rahul"
-                                className={w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors"
                             />
                         </FormField>
                         <FormField label="Last Name">
@@ -59,7 +58,7 @@ export default function Profile() {
                                 value={formData.lastName}
                                 onChange={handleChange}
                                 placeholder="Sharma"
-                                className={w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors"
                             />
                         </FormField>
                     </div>
@@ -71,7 +70,7 @@ export default function Profile() {
                             value={formData.email}
                             onChange={handleChange}
                             placeholder="rahul@example.com"
-                            className={w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors"
                         />
                     </FormField>
 
@@ -82,7 +81,7 @@ export default function Profile() {
                             onChange={handleChange}
                             rows="4"
                             placeholder="Tell us about yourself..."
-                            className={`${w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors} resize-none`}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#da5407] focus:ring-1 focus:ring-[#da5407] transition-colors resize-none"
                         />
                     </FormField>
 
