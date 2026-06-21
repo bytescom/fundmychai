@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export default function Hero() {
     return (
-        <div className="w-full lg:max-w-7xl lg:h-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="w-full lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
-            <div className="w-full lg:max-w-7xl h-[75vh] lg:h-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl bg-[#da5407] relative aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] flex items-center justify-center">
+            <div className="w-full lg:max-w-7xl h-[75vh] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl bg-[#da5407] relative aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] flex items-center justify-center">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
 

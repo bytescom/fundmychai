@@ -1,22 +1,44 @@
 "use client";
 
+import React, { useState } from 'react'
 import Link from 'next/link'
-import React, { useEffect } from 'react'
-import { signIn } from 'next-auth/react';
 import { FaGithub, FaGoogle } from "react-icons/fa";
+import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { useSession } from "next-auth/react"
 
-const Login = () => {
-    const { data: session } = useSession();
+const SignIn = () => {
+    const [formData, setFormData] = useState({
+        email: "",
+        password: ""
+    })
     const router = useRouter();
 
-    useEffect(() => {
-        if (session) {
-            router.push('/dashboard')
+    const handleChange = (e) => {
+        let { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        // console.log(formData);
+
+        const { data, error } = await authClient.signIn.email({
+            email: formData.email,
+            password: formData.password,
+            // callbackURL: "https://example.com/callback",
+        });
+
+        if (error) {
+            console.log(error);
+            alert(error.message);
+            return;
         }
-    }, [session, router])
-    
+
+        console.log(data);
+        alert("SignIn Successful");
+
+        router.push("/dashboard");
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center p-4">
@@ -25,7 +47,6 @@ const Login = () => {
 
                 {/* GitHub Login button */}
                 <button
-                    onClick={() => signIn("github")}
                     className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 cursor-pointer transition duration-200 mb-3"
                 >
                     <FaGithub />
@@ -34,7 +55,6 @@ const Login = () => {
 
                 {/* Google Login button */}
                 <button
-                    onClick={() => signIn("google")}
                     className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 cursor-pointer transition duration-200 mb-4"
                 >
                     <FaGoogle className="text-red-500" />
@@ -50,13 +70,15 @@ const Login = () => {
                     </div>
                 </div>
 
-                <form className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input
                             type="email"
-                            id="email"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
+                            name='email'
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full px-4 text-gray-700 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
                             placeholder="your@email.com"
                             required
                         />
@@ -67,8 +89,10 @@ const Login = () => {
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                         <input
                             type="password"
-                            id="password"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
+                            name='password'
+                            value={formData.password}
+                            onChange={handleChange}
+                            className="w-full px-4 text-gray-700 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-orange-600 placeholder-gray-400"
                             required
                             placeholder="******"
                             minLength={6}
@@ -101,4 +125,4 @@ const Login = () => {
     )
 }
 
-export default Login
+export default SignIn

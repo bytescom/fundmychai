@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-#components
-components/help/
+AGENTS.md
+CLAUDE.md
+DevServiceWorkerReset.js
