@@ -23,12 +23,12 @@ const Navbar = () => {
 
 
                 <Link href="/" className="flex items-center gap-2 cursor-pointer group" aria-label="Go to homepage">
-                    <Image src="/logo.png" alt="FundMyChai" width={120} height={80} priority className="w-24 sm:w-[120px]" />
+                    <Image src="/logo.png" alt="FundMyChai" width={120} height={80} priority className="w-24 sm:w-[120px]" style={{ height: 'auto' }} />
                 </Link>
 
                 {/* Desktop Navigation */}
                 <div className='flex justify-center items-center gap-3'>
-                    <Link href="/auth/login">
+                    <Link href="/auth/signin">
                         <button className="h-11 px-6 text-sm font-bold text-[#8c4928] bg-[#fff5ec] hover:bg-[#fce5d1] rounded-full transition-all duration-300 flex items-center justify-center cursor-pointer hidden md:flex">
                             Sign In
                         </button>
@@ -44,7 +44,7 @@ const Navbar = () => {
                         </button>
                     </Link>
 
-                    <Link href="/auth/login">
+                    <Link href="/auth/signin">
                         <button className="h-11 px-1 font text-[#c94e07] transition-all duration-300 flex items-center gap-2 cursor-pointer md:hidden">
                             Sign-In
                         </button>
